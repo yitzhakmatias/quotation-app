@@ -1,16 +1,17 @@
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Quotation.API.Model;
 
-namespace Quotation.API.Model
+namespace Quotation.API.DTOs
 {
-    public class Purchase
+    public class PurchaseDTO
     {
         public int Id { get; set; }
+        public string Name { get; set; }
+        
         public int UserId { get; set; }
         public double Amount { get; set; }   
+        [JsonConverter(typeof(StringEnumConverter))]
         public int Currency { get; set; }
-        public User Users { get; set; }
     }
 }

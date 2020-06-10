@@ -29,8 +29,8 @@ namespace Quotation.API.Controllers
             return NotFound(new NotFoundError("The quotation was not found"));
         }
 
-        [HttpGet("{currency}")]
-        public async Task<IActionResult> Get(Currency? currency)
+        [HttpGet("current")]
+        public async Task<IActionResult> Get(Currencies? currency)
         {
             try
             {
@@ -41,21 +41,21 @@ namespace Quotation.API.Controllers
 
                     switch (currency)
                     {
-                        case Currency.Dollar:
+                        case Currencies.Dollar:
                         {
                             return Ok(new Model.Quotation()
                             {
-                                Moneda = Currency.Dollar.ToString(),
+                                Moneda = Currencies.Dollar.ToString(),
                                 Compra = Convert.ToDouble(response[0]),
                                 Venta = Convert.ToDouble(response[1]),
                                 Fecha = response[2].ToString()
                             });
                         }
-                        case Currency.Real:
+                        case Currencies.Real:
                         {
                             return Ok(new Model.Quotation()
                             {
-                                Moneda = Currency.Real.ToString(),
+                                Moneda = Currencies.Real.ToString(),
                                 Compra = Convert.ToDouble(response[0]) / 4,
                                 Venta = Convert.ToDouble(response[1]) / 4,
                                 Fecha = response[2].ToString()

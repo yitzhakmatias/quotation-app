@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Quotation.API.Data;
 using Quotation.API.DataContext;
 
 namespace Quotation.API
@@ -30,6 +31,9 @@ namespace Quotation.API
             services.AddDbContext<QuotationContext>(x =>
                 x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
             services.AddControllers();
+            services.AddCors();
+            services.AddScoped<IPurchaseRepository, PurchaseRepository>();
+            services.AddScoped<IUserInterface, UserRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,6 +44,7 @@ namespace Quotation.API
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
             // app.UseHttpsRedirection();
 
             app.UseRouting();
