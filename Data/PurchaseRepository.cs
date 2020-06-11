@@ -17,12 +17,12 @@ namespace Quotation.API.Data
 
         public async Task Add(Purchase purchase)
         {
-            throw new System.NotImplementedException();
+            await _quotationContext.Purchases.AddAsync(purchase).AsTask();
+            await _quotationContext.SaveChangesAsync();
         }
 
         public async Task<List<Purchase>> GetPurchaseList()
         {
-            var user = await _quotationContext.Users.ToListAsync();
             var response = await _quotationContext.Purchases.ToListAsync();
             return response;
         }

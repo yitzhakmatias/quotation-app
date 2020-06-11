@@ -13,5 +13,7 @@ namespace Quotation.API.DTOs
         public double Amount { get; set; }   
         [JsonConverter(typeof(StringEnumConverter))]
         public int Currency { get; set; }
+
+        public string CurrencyName { get; set; }
     }
 }
