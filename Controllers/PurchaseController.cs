@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +16,14 @@ namespace Quotation.API.Controllers
     {
         private readonly IPurchaseRepository _purchaseRepository;
         private readonly IUserInterface _userInterface;
+        private readonly IQuotationRepository _quotationRepository;
 
-        public PurchaseController(IPurchaseRepository purchaseRepository, IUserInterface userInterface)
+        public PurchaseController(IPurchaseRepository purchaseRepository, IUserInterface userInterface,
+            IQuotationRepository quotationRepository)
         {
             _purchaseRepository = purchaseRepository;
             _userInterface = userInterface;
+            _quotationRepository = quotationRepository;
         }
 
         private readonly Func<int, Currencies> _getCurrency = (currency) =>
@@ -50,7 +52,8 @@ namespace Quotation.API.Controllers
                         Currency = item.Currency,
                         CurrencyName = _getCurrency(item.Currency).ToString(),
                         Name = _userInterface.GetUserById(item.UserId).Result.Name,
-                        UserId = item.UserId
+                        UserId = item.UserId,
+                        Value = Math.Round(item.Value, 2)
                     })
                     .ToList();
 
@@ -58,7 +61,7 @@ namespace Quotation.API.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new InternalServerError("The quotation was not found"));
+                return StatusCode(500, "Internal server error");
             }
         }
 
@@ -67,19 +70,61 @@ namespace Quotation.API.Controllers
         {
             try
             {
+                Currencies currencyVal = _getCurrency(purchase.Currency);
+                var quotation = await _quotationRepository.GetQuotation(currencyVal);
+
+                var value = await UpdateAmount(purchase.Amount, quotation, currencyVal);
+
+                if (!CheckAmountLimits(value, currencyVal, purchase.UserId))
+                {
+                    return BadRequest(new InternalServerError("El limite de compra se ha excedido"));
+                 
+                }
+
                 var purchaseEntity = new Purchase()
                 {
                     Amount = purchase.Amount,
+                    Value = value,
                     UserId = purchase.UserId,
                     Currency = purchase.Currency
                 };
                 await _purchaseRepository.Add(purchaseEntity);
-                
-                return Ok(purchase);
+
+                return Ok(purchaseEntity);
             }
             catch (Exception e)
             {
-                return BadRequest(new InternalServerError("The quotation was not found"));
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        private async Task<double> UpdateAmount(double purchaseAmount, Model.Quotation quotation,
+            Currencies currencyVal)
+        {
+            switch (currencyVal)
+            {
+                case Currencies.Dollar:
+                {
+                    return purchaseAmount / quotation.Compra;
+                }
+                case Currencies.Real:
+                {
+                    return purchaseAmount / quotation.Compra;
+                }
+                default: return 0;
+            }
+        }
+
+        private bool CheckAmountLimits(double amount, Currencies currency, int userId)
+        {
+            var user = _userInterface.GetUserById(userId).Result;
+            switch (currency)
+            {
+                case Currencies.Dollar when amount > user.DollarLimit:
+                case Currencies.Real when amount > user.RealLimit:
+                    return false;
+                default:
+                    return true;
             }
         }
     }

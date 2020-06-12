@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using Quotation.API.Data;
 using Quotation.API.Model;
 using Quotation.API.Utilities;
 
@@ -15,58 +16,37 @@ namespace Quotation.API.Controllers
     public class QuotationController : ControllerBase
     {
         private readonly ILogger<QuotationController> _logger;
+        private readonly IQuotationRepository _quotationRepository;
         private HttpClient _httpClient;
         private readonly string _url = @"http://www.bancoprovincia.com.ar/Principal/Dolar";
 
-        public QuotationController(ILogger<QuotationController> logger)
+        public QuotationController(ILogger<QuotationController> logger, IQuotationRepository quotationRepository)
         {
             _logger = logger;
+            _quotationRepository = quotationRepository;
         }
-
+      
         [HttpGet]
         public async Task<IActionResult> Get()
-        { 
-            return NotFound(new NotFoundError("The quotation was not found"));
+        {
+            _logger.LogInformation("Fetching all the quotes from the storage");
+
+            throw new Exception("Exception while fetching all the quotes from the storage.");
         }
 
-        [HttpGet("current")]
+        [HttpGet("currency")]
         public async Task<IActionResult> Get(Currencies? currency)
         {
             try
             {
-                using (_httpClient = new HttpClient())
-                {
-                    var content = await _httpClient.GetStringAsync(_url);
-                    var response = JArray.Parse(content);
+                _logger.LogInformation("Fetching all the currencies from the storage");
 
-                    switch (currency)
-                    {
-                        case Currencies.Dollar:
-                        {
-                            return Ok(new Model.Quotation()
-                            {
-                                Moneda = Currencies.Dollar.ToString(),
-                                Compra = Convert.ToDouble(response[0]),
-                                Venta = Convert.ToDouble(response[1]),
-                                Fecha = response[2].ToString()
-                            });
-                        }
-                        case Currencies.Real:
-                        {
-                            return Ok(new Model.Quotation()
-                            {
-                                Moneda = Currencies.Real.ToString(),
-                                Compra = Convert.ToDouble(response[0]) / 4,
-                                Venta = Convert.ToDouble(response[1]) / 4,
-                                Fecha = response[2].ToString()
-                            });
-                        }
-                        default:
-                        {
-                            return NotFound(new NotFoundError("The quotation was not found"));
-                        }
-                    }
-                }
+                var quotation = await _quotationRepository.GetQuotation(currency);
+                if (quotation == null)
+                    return NotFound(new NotFoundError("The quotation was not found"));
+
+                return Ok(quotation);
+
             }
             catch (Exception e)
             {

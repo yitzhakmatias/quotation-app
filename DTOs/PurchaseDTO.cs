@@ -15,5 +15,6 @@ namespace Quotation.API.DTOs
         public int Currency { get; set; }
 
         public string CurrencyName { get; set; }
+        public double Value { get; set; }
     }
 }
