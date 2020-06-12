@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -42,13 +43,22 @@ namespace Quotation.API.Controllers
             }
         };
 
+        [HttpGet("currency")]
+        public async Task<IActionResult> GetCurrency()
+        {
+            return Ok(new List<CurrencyDto>()
+            {
+                new CurrencyDto() {Id = 1, Name = "Dollar"}, new CurrencyDto() {Id = 2, Name = "Real"},
+            });
+        }
+
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             try
             {
                 var res = await _purchaseRepository.GetPurchaseList();
-                if (res==null) return Ok(null);
+                if (res == null) return Ok(null);
 
                 var purchases = res.Select(item => new PurchaseDTO()
                     {
