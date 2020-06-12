@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Quotation.API.DataContext;
 using Quotation.API.Utilities;
 
@@ -13,10 +14,11 @@ namespace Quotation.API.Controllers
     public class UserController : ControllerBase
     {
         private readonly QuotationContext _quotationContext;
-
-        public UserController(QuotationContext quotationContext)
+        private readonly ILogger<UserController> _logger;
+        public UserController(QuotationContext quotationContext, ILogger<UserController> logger)
         {
             _quotationContext = quotationContext;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -28,7 +30,7 @@ namespace Quotation.API.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError("error: " + e.Message);
                 return BadRequest(new InternalServerError("error was found"));
             }
 

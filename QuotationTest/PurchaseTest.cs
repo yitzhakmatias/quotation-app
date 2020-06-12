@@ -23,5 +23,6 @@ namespace QuotationTest
             Assert.Equal(expectedContentType,
                 response.Content.Headers.ContentType.ToString());
         }
+        
     }
 }
