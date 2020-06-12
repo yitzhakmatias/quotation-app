@@ -39,6 +39,7 @@ namespace Quotation.API
             services.AddScoped<IPurchaseRepository, PurchaseRepository>();
             services.AddScoped<IUserInterface, UserRepository>();
             services.AddScoped<IQuotationRepository, QuotationRepository>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

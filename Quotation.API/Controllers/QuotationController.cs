@@ -50,7 +50,7 @@ namespace Quotation.API.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError("error: " + e.Message);
                 return BadRequest(new InternalServerError("The quotation was not found"));
             }
         }

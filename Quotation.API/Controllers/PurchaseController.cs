@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Quotation.API.Data;
 using Quotation.API.DTOs;
 using Quotation.API.Model;
@@ -17,13 +18,15 @@ namespace Quotation.API.Controllers
         private readonly IPurchaseRepository _purchaseRepository;
         private readonly IUserInterface _userInterface;
         private readonly IQuotationRepository _quotationRepository;
+        private readonly ILogger<PurchaseController> _logger;
 
         public PurchaseController(IPurchaseRepository purchaseRepository, IUserInterface userInterface,
-            IQuotationRepository quotationRepository)
+            IQuotationRepository quotationRepository, ILogger<PurchaseController> logger)
         {
             _purchaseRepository = purchaseRepository;
             _userInterface = userInterface;
             _quotationRepository = quotationRepository;
+            _logger = logger;
         }
 
         private readonly Func<int, Currencies> _getCurrency = (currency) =>
@@ -45,6 +48,8 @@ namespace Quotation.API.Controllers
             try
             {
                 var res = await _purchaseRepository.GetPurchaseList();
+                if (res==null) return Ok(null);
+
                 var purchases = res.Select(item => new PurchaseDTO()
                     {
                         Id = item.Id,
@@ -61,6 +66,7 @@ namespace Quotation.API.Controllers
             }
             catch (Exception e)
             {
+                _logger.LogError("error: " + e.Message);
                 return StatusCode(500, "Internal server error");
             }
         }
@@ -70,6 +76,8 @@ namespace Quotation.API.Controllers
         {
             try
             {
+                _logger.LogInformation("register purchase of currency");
+
                 Currencies currencyVal = _getCurrency(purchase.Currency);
                 var quotation = await _quotationRepository.GetQuotation(currencyVal);
 
@@ -78,7 +86,6 @@ namespace Quotation.API.Controllers
                 if (!CheckAmountLimits(value, currencyVal, purchase.UserId))
                 {
                     return BadRequest(new InternalServerError("El limite de compra se ha excedido"));
-                 
                 }
 
                 var purchaseEntity = new Purchase()
@@ -94,6 +101,7 @@ namespace Quotation.API.Controllers
             }
             catch (Exception e)
             {
+                _logger.LogError("error: " + e.Message);
                 return StatusCode(500, "Internal server error");
             }
         }
